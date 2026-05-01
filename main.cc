@@ -22,9 +22,10 @@ int main(int argc, char* argv[]) {
 
         const config::Provider& provider = it->second;
 
-        if (provider.api_key.empty()) {
-            std::cerr << "Error: api_key is not set for provider '"
+        if (provider.api_key.empty() || provider.api_key.find("sk-xxxxxxxx") == 0) {
+            std::cerr << "Error: api_key is not set or still using placeholder for provider '"
                       << cfg.default_provider << "'." << std::endl;
+            std::cerr << "Please edit your config file: " << config_path << std::endl;
             return 1;
         }
 
@@ -40,14 +41,15 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        llm::LLM llm(provider.base_url, provider.api_key, provider.model, true);
+        llm::LLM llm(provider.base_url, provider.api_key, provider.model, true, provider.system_prompt);
 
         std::string input;
 
+        std::string prefix = cfg.default_provider + ": ";
+
         if (argc > 1) {
             input = argv[1];
-            std::string answer = llm.ask(input);
-            std::cout << cfg.default_provider << ": " << answer << std::endl;
+            llm.ask(input, prefix);
         }
 
         while (true) {
@@ -57,8 +59,7 @@ int main(int argc, char* argv[]) {
                 break;
             }
 
-            std::string answer = llm.ask(input);
-            std::cout << cfg.default_provider << ": " << answer << std::endl;
+            llm.ask(input, prefix);
         }
 
     } catch (const std::exception& e) {
