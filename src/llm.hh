@@ -17,7 +17,8 @@ public:
         const std::string& api_key,
         const std::string& model,
         bool enable_context,
-        const std::string& system_prompt);
+        const std::string& system_prompt,
+        int temperature = -1);
 
     std::string ask(const std::string& question, const std::string& prefix = "");
 
@@ -26,6 +27,7 @@ private:
     std::string api_key_;
     std::string model_;
     bool enable_context_;
+    int temperature_;
     std::vector<Message> history_;
     std::string system_prompt_;
 

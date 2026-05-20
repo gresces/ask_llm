@@ -24,11 +24,13 @@ LLM::LLM(const std::string& api_endpoint,
          const std::string& api_key,
          const std::string& model,
          bool enable_context,
-         const std::string& system_prompt)
+         const std::string& system_prompt,
+         int temperature)
     : api_endpoint_(api_endpoint),
       api_key_(api_key),
       model_(model),
       enable_context_(enable_context),
+      temperature_(temperature),
       system_prompt_(system_prompt) {
     check_curl_available();
 }
@@ -77,6 +79,9 @@ std::string LLM::build_request_body(const std::string& question) {
 
     body += "{\"role\":\"user\",\"content\":\"" + escape_json(question) + "\"}";
     body += "],";
+    if (temperature_ >= 0) {
+        body += "\"temperature\":" + std::to_string(temperature_) + ",";
+    }
     body += "\"thinking\":{\"type\":\"enabled\"},";
     body += "\"reasoning_effort\":\"high\",";
     body += "\"stream\":true";
