@@ -12,4 +12,4 @@ just run `make && sudo make install`
 
 - `ask tEn "你好，世界"`：中英自动互译
 - `ask tZh "hello world"`：翻译为中文
-- `ask tJp "你好"`：翻译为日文
+- `ask tJp "你好"`：日本語に翻訳する
