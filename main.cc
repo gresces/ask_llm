@@ -5,6 +5,11 @@
 
 namespace {
 
+const std::string kShellSystemPrompt =
+    "You convert the user's request into exactly one shell command. "
+    "Return only the command itself, with no markdown, no code fences, no explanation, no numbering, and no surrounding quotes. "
+    "The command must be directly executable in a POSIX shell and should be as concise as possible.";
+
 std::string build_translation_system_prompt(const std::string& mode) {
     if (mode == "tEn") {
         return "You are a translation engine. Detect whether the user's text is primarily Chinese or English. "
@@ -79,12 +84,14 @@ int main(int argc, char* argv[]) {
 
         std::string mode = argc > 1 ? argv[1] : "";
         bool translate_mode = mode == "tEn" || mode == "tZh" || mode == "tJp";
+        bool shell_mode = mode == "shell";
         llm::LLM llm(provider.base_url,
                      provider.api_key,
                      provider.model,
-                     !translate_mode,
-                     translate_mode ? build_translation_system_prompt(mode) : provider.system_prompt,
-                     translate_mode ? 0 : -1);
+                     !translate_mode && !shell_mode,
+                     translate_mode ? build_translation_system_prompt(mode)
+                                    : (shell_mode ? kShellSystemPrompt : provider.system_prompt),
+                     translate_mode || shell_mode ? 0 : -1);
 
         std::string input;
 
@@ -93,12 +100,19 @@ int main(int argc, char* argv[]) {
         if (translate_mode) {
             input = join_args(argc, argv, 2);
             prefix = "translate: ";
+        } else if (shell_mode) {
+            input = join_args(argc, argv, 2);
+            prefix.clear();
         } else if (argc > 1) {
             input = join_args(argc, argv, 1);
         }
 
         if (!input.empty()) {
             llm.ask(input, prefix);
+        }
+
+        if (shell_mode) {
+            return 0;
         }
 
         while (true) {
